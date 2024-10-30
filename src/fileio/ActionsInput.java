@@ -13,6 +13,8 @@ public final class ActionsInput {
     public ActionsInput() {
     }
 
+
+
     public String getCommand() {
         return command;
     }
