@@ -1,34 +1,51 @@
 package game;
 
+import fileio.Input;
+import fileio.GameInput;
+import fileio.StartGameInput;
+import fileio.CardInput;
+import fileio.DecksInput;
+import fileio.ActionsInput;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fileio.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 import java.util.Random;
 
-public class InputProcessor {
+public class GameEngine {
     private final Input input;
     private final ObjectMapper objectMapper;
 
-    public InputProcessor(Input input) {
+    public GameEngine(final Input input) {
         this.input = input;
         this.objectMapper = new ObjectMapper();
     }
 
-    public ArrayNode applyActions() {
+    /**
+     * Applies actions to the input.
+     * <p>
+     * Implementation of the main game mechanics.
+     * @return The output of the game.
+     * </p>
+     */
+    public final ArrayNode applyActions() {
         ArrayNode output = objectMapper.createArrayNode();
         for (GameInput game : input.getGames()) {
             StartGameInput startGame = game.getStartGame();
             Random seed1 = new Random(startGame.getShuffleSeed());
             Random seed2 = new Random(startGame.getShuffleSeed());
             shuffleDecks(startGame, seed1, seed2);
+
             // Temporary! Simulates first card draw for both players
-            ArrayList<CardInput> deckPlayerOne = input.getPlayerOneDecks().getDecks().get(game.getStartGame().getPlayerOneDeckIdx());
-            ArrayList<CardInput> deckPlayerTwo = input.getPlayerTwoDecks().getDecks().get(game.getStartGame().getPlayerTwoDeckIdx());
+            ArrayList<CardInput> deckPlayerOne = input.getPlayerOneDecks().getDecks().get(
+                    game.getStartGame().getPlayerOneDeckIdx());
+            ArrayList<CardInput> deckPlayerTwo = input.getPlayerTwoDecks().getDecks().get(
+                    game.getStartGame().getPlayerTwoDeckIdx());
+
             Players playerOne = new Players(deckPlayerOne.get(0), 1);
             Players playerTwo = new Players(deckPlayerTwo.get(0), 2);
             deckPlayerOne.remove(0);
@@ -40,31 +57,37 @@ public class InputProcessor {
                 switch (action.getCommand()) {
                     case "getPlayerDeck":
                         actionOutput.put("playerIdx", action.getPlayerIdx());
-                        actionOutput.set("output", getPlayerDeck(action.getPlayerIdx(), game.getStartGame()));
+                        actionOutput.set("output", getPlayerDeck(action.getPlayerIdx(),
+                                game.getStartGame()));
                         break;
                     case "getPlayerHero":
                         actionOutput.put("playerIdx", action.getPlayerIdx());
-                        actionOutput.set("output", getPlayerHero(action.getPlayerIdx(), game.getStartGame()));
+                        actionOutput.set("output", getPlayerHero(action.getPlayerIdx(),
+                                game.getStartGame()));
                         break;
                     case "getPlayerTurn":
                         actionOutput.put("output", getPlayerTurn(game.getStartGame()));
                         break;
-                  // default:
-                  //     throw new IllegalArgumentException("Unknown command: " + action.getCommand());
+                    default:
+                        break;
                 }
                 output.add(actionOutput);
             }
         }
         return output;
     }
-    private void shuffleDecks(StartGameInput startGame, Random seed1, Random seed2) {
-        Collections.shuffle(input.getPlayerOneDecks().getDecks().get(startGame.getPlayerOneDeckIdx()), seed1);
-        Collections.shuffle(input.getPlayerTwoDecks().getDecks().get(startGame.getPlayerTwoDeckIdx()), seed2);
+    private void shuffleDecks(final StartGameInput startGame, final Random seed1, final Random seed2) {
+        Collections.shuffle(input.getPlayerOneDecks().getDecks().get(
+                startGame.getPlayerOneDeckIdx()),seed1);
+        Collections.shuffle(input.getPlayerTwoDecks().getDecks().get(
+                startGame.getPlayerTwoDeckIdx()), seed2);
     }
 
-    private ArrayNode getPlayerDeck(int playerIdx, StartGameInput startGame) {
-        DecksInput decks = (playerIdx == 1) ? input.getPlayerOneDecks() : input.getPlayerTwoDecks();
-        List<CardInput> deck = decks.getDecks().get((playerIdx == 1) ? startGame.getPlayerOneDeckIdx() : startGame.getPlayerTwoDeckIdx());
+    private ArrayNode getPlayerDeck(final int playerIdx, final StartGameInput startGame) {
+        DecksInput decks = (playerIdx == 1) ?
+                input.getPlayerOneDecks() : input.getPlayerTwoDecks();
+        List<CardInput> deck = decks.getDecks().get((playerIdx == 1) ?
+                startGame.getPlayerOneDeckIdx() : startGame.getPlayerTwoDeckIdx());
         ArrayNode deckArray = objectMapper.createArrayNode();
         for (CardInput card : deck) {
             ObjectNode cardNode = objectMapper.createObjectNode();

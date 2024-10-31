@@ -4,7 +4,6 @@ import checker.Checker;
 import game.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import checker.CheckerConstants;
 import fileio.Input;
@@ -15,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.List;
 
 /**
  * The entry point to this homework. It runs the checker that tests your implementation.
@@ -69,7 +67,7 @@ public final class Main {
                 Input.class);
 
         // Takes the input and outputs the actions after applying them
-        InputProcessor processor = new InputProcessor(inputData);
+        GameEngine processor = new GameEngine(inputData);
         ArrayNode output = processor.applyActions();
 
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath2), output);
