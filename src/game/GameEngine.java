@@ -3,8 +3,6 @@ package game;
 import fileio.Input;
 import fileio.GameInput;
 import fileio.StartGameInput;
-import fileio.CardInput;
-import fileio.DecksInput;
 import fileio.ActionsInput;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,104 +11,79 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Collections;
-import java.util.Random;
 
 public class GameEngine {
     private final Input input;
     private final ObjectMapper objectMapper;
+    private final Player player1;
+    private final Player player2;
+    private Table table;
+    private StartGameInput startGame;
+    private ArrayList<ActionsInput> actions;
+    private int currentTurn;
+    private int currentRound;
 
     public GameEngine(final Input input) {
         this.input = input;
-        this.objectMapper = new ObjectMapper();
+        objectMapper = new ObjectMapper();
+        player1 = new Player(1);
+        player2 = new Player(2);
+    }
+
+    public void start(GameInput game) {
+        startGame = game.getStartGame();
+        actions = game.getActions();
+        table = new Table();
+        currentTurn = 0;
+        currentRound = 1;
+        // Set heroes
+        player1.setHero(startGame.getPlayerOneHero());
+        player2.setHero(startGame.getPlayerTwoHero());
+        // Shuffle decks
+        int seed = startGame.getShuffleSeed();
+        player1.initDeck(input.getPlayerOneDecks().getDecks().get(
+                startGame.getPlayerOneDeckIdx()), seed);
+        player2.initDeck(input.getPlayerTwoDecks().getDecks().get(
+                startGame.getPlayerTwoDeckIdx()), seed);
     }
 
     /**
      * Applies actions to the input.
      * <p>
      * Implementation of the main game mechanics.
-     * @return The output of the game.
      * </p>
      */
-    public final ArrayNode applyActions() {
-        ArrayNode output = objectMapper.createArrayNode();
-        for (GameInput game : input.getGames()) {
-            StartGameInput startGame = game.getStartGame();
-            Random seed1 = new Random(startGame.getShuffleSeed());
-            Random seed2 = new Random(startGame.getShuffleSeed());
-            shuffleDecks(startGame, seed1, seed2);
+    public final void play(ArrayNode output) {
+        // Draw initial cards
+        player1.drawCard();
+        player2.drawCard();
 
-            // Temporary! Simulates first card draw for both players
-            ArrayList<CardInput> deckPlayerOne = input.getPlayerOneDecks().getDecks().get(
-                    game.getStartGame().getPlayerOneDeckIdx());
-            ArrayList<CardInput> deckPlayerTwo = input.getPlayerTwoDecks().getDecks().get(
-                    game.getStartGame().getPlayerTwoDeckIdx());
+        for (ActionsInput action : actions) {
+            int idx = action.getPlayerIdx();
+            ObjectNode actionOutput = objectMapper.createObjectNode();
+            actionOutput.put("command", action.getCommand());
+            switch (action.getCommand()) {
+                case "getPlayerDeck":
+                    actionOutput.put("playerIdx", idx);
+                    actionOutput.set("output", idx == 1 ? player1.mappedDeck(objectMapper)
+                            : player2.mappedDeck(objectMapper));
+                    break;
+                case "getPlayerHero":
+                    actionOutput.put("playerIdx", idx);
+                    actionOutput.set("output", idx == 1 ? player1.mappedHero(objectMapper)
+                            : player2.mappedHero(objectMapper));
+                    break;
+                case "getPlayerTurn":
+                    actionOutput.put("output", getPlayerTurn(startGame));
+                    break;
+                case "endPlayerTurn":
 
-            Players playerOne = new Players(deckPlayerOne.get(0), 1);
-            Players playerTwo = new Players(deckPlayerTwo.get(0), 2);
-            deckPlayerOne.remove(0);
-            deckPlayerTwo.remove(0);
-
-            for (ActionsInput action : game.getActions()) {
-                ObjectNode actionOutput = objectMapper.createObjectNode();
-                actionOutput.put("command", action.getCommand());
-                switch (action.getCommand()) {
-                    case "getPlayerDeck":
-                        actionOutput.put("playerIdx", action.getPlayerIdx());
-                        actionOutput.set("output", getPlayerDeck(action.getPlayerIdx(),
-                                game.getStartGame()));
-                        break;
-                    case "getPlayerHero":
-                        actionOutput.put("playerIdx", action.getPlayerIdx());
-                        actionOutput.set("output", getPlayerHero(action.getPlayerIdx(),
-                                game.getStartGame()));
-                        break;
-                    case "getPlayerTurn":
-                        actionOutput.put("output", getPlayerTurn(game.getStartGame()));
-                        break;
-                    default:
-                        break;
-                }
-                output.add(actionOutput);
+                    break;
+                default:
+                    break;
             }
+            output.add(actionOutput);
         }
-        return output;
-    }
-    private void shuffleDecks(final StartGameInput startGame, final Random seed1, final Random seed2) {
-        Collections.shuffle(input.getPlayerOneDecks().getDecks().get(
-                startGame.getPlayerOneDeckIdx()),seed1);
-        Collections.shuffle(input.getPlayerTwoDecks().getDecks().get(
-                startGame.getPlayerTwoDeckIdx()), seed2);
-    }
-
-    private ArrayNode getPlayerDeck(final int playerIdx, final StartGameInput startGame) {
-        DecksInput decks = (playerIdx == 1) ?
-                input.getPlayerOneDecks() : input.getPlayerTwoDecks();
-        List<CardInput> deck = decks.getDecks().get((playerIdx == 1) ?
-                startGame.getPlayerOneDeckIdx() : startGame.getPlayerTwoDeckIdx());
-        ArrayNode deckArray = objectMapper.createArrayNode();
-        for (CardInput card : deck) {
-            ObjectNode cardNode = objectMapper.createObjectNode();
-            cardNode.put("mana", card.getMana());
-            cardNode.put("attackDamage", card.getAttackDamage());
-            cardNode.put("health", card.getHealth());
-            cardNode.put("description", card.getDescription());
-            cardNode.putPOJO("colors", card.getColors());
-            cardNode.put("name", card.getName());
-            deckArray.add(cardNode);
-        }
-        return deckArray;
-    }
-
-    private ObjectNode getPlayerHero(int playerIdx, StartGameInput startGame) {
-        CardInput hero = (playerIdx == 1) ? startGame.getPlayerOneHero() : startGame.getPlayerTwoHero();
-        ObjectNode heroNode = objectMapper.createObjectNode();
-        heroNode.put("mana", hero.getMana());
-        heroNode.put("description", hero.getDescription());
-        heroNode.putPOJO("colors", hero.getColors());
-        heroNode.put("name", hero.getName());
-        heroNode.put("health", 30); // Assuming the health is always 30 for heroes
-        return heroNode;
     }
 
     private int getPlayerTurn(StartGameInput startGame) {

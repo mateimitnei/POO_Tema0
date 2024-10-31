@@ -1,7 +1,8 @@
 package main;
 
 import checker.Checker;
-import game.*;
+import fileio.GameInput;
+import game.GameEngine;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -66,9 +67,12 @@ public final class Main {
         Input inputData = objectMapper.readValue(new File(CheckerConstants.TESTS_PATH + filePath1),
                 Input.class);
 
-        // Takes the input and outputs the actions after applying them
-        GameEngine processor = new GameEngine(inputData);
-        ArrayNode output = processor.applyActions();
+        ArrayNode output = objectMapper.createArrayNode();
+        GameEngine engine = new GameEngine(inputData);
+        for (GameInput game : inputData.getGames()) {
+            engine.start(game);
+            engine.play(output);
+        }
 
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath2), output);
     }
