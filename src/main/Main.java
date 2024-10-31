@@ -69,9 +69,11 @@ public final class Main {
 
         ArrayNode output = objectMapper.createArrayNode();
         GameEngine engine = new GameEngine(inputData);
+        int i = 0;
         for (GameInput game : inputData.getGames()) {
+            i++;
             engine.start(game);
-            engine.play(output);
+            engine.play(output, i);
         }
 
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath2), output);

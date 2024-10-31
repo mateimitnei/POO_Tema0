@@ -52,7 +52,7 @@ public final class Player {
      */
     public ArrayNode mappedHand(final ObjectMapper objectMapper) {
         ArrayNode handArray = objectMapper.createArrayNode();
-        for (Card card : deck) {
+        for (Card card : hand) {
             handArray.add(mappedCard(objectMapper, card));
         }
         return handArray;
