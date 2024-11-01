@@ -16,6 +16,7 @@ import java.util.Random;
 public final class Player {
     private int id;
     public int mana;
+    public int wins;
     private ArrayList<Card> hand;
     private ArrayList<Card> deck;
     private Hero hero;
@@ -23,6 +24,7 @@ public final class Player {
     public Player(final int id) {
         this.id = id;
         mana = 0;
+        wins = 0;
         hand = new ArrayList<>();
         deck = new ArrayList<>();
     }
@@ -53,7 +55,7 @@ public final class Player {
     public ArrayNode mappedHand(final ObjectMapper objectMapper) {
         ArrayNode handArray = objectMapper.createArrayNode();
         for (Card card : hand) {
-            handArray.add(mappedCard(objectMapper, card));
+            handArray.add(card.mappedCard(objectMapper));
         }
         return handArray;
     }
@@ -66,20 +68,9 @@ public final class Player {
     public ArrayNode mappedDeck(final ObjectMapper objectMapper) {
         ArrayNode deckArray = objectMapper.createArrayNode();
         for (Card card : deck) {
-            deckArray.add(mappedCard(objectMapper, card));
+            deckArray.add(card.mappedCard(objectMapper));
         }
         return deckArray;
-    }
-
-    public ObjectNode mappedCard(final ObjectMapper objectMapper, final Card card) {
-        ObjectNode cardNode = objectMapper.createObjectNode();
-        cardNode.put("mana", card.getMana());
-        cardNode.put("attackDamage", card.getAttack());
-        cardNode.put("health", card.getHp());
-        cardNode.put("description", card.getDescription());
-        cardNode.putPOJO("colors", card.getColors());
-        cardNode.put("name", card.getName());
-        return cardNode;
     }
 
     /**

@@ -15,12 +15,12 @@ import java.util.Arrays;
 public class GameEngine {
     private final Input input;
     private final ObjectMapper objectMapper;
-    private Player[] players;
+    private final Player[] players;
     private Table table;
     private StartGameInput startGame;
     private ArrayList<ActionsInput> actions;
-    public static final String[] noOutput = {"endPlayerTurn", "placeCard", "useHeroAbility",
-            "useAttackHero", "cardUsesAbility", "cardUsesAttack"};
+    public static final String[] NO_OUTPUT_ACTIONS = {"endPlayerTurn", "placeCard",
+            "useHeroAbility", "useAttackHero", "cardUsesAbility", "cardUsesAttack"};
     public static final int MAX_MANA = 10;
     private int playerTurn;
     private int currentRound;
@@ -60,73 +60,72 @@ public class GameEngine {
      * </p>
      */
     public final void play(ArrayNode output, int i) {
-        System.out.println("\n#### GAME "+ i +" ####\n");
+        System.out.println("\n#### GAME " + i + " ####\n");
+        int playerIdx;
+        int handIdx;
+        boolean addToOutput;
 
         for (ActionsInput action : actions) {
-            int playerIdx = action.getPlayerIdx() - 1;
-            int handIdx = action.getHandIdx();
-            if (Arrays.asList(noOutput).contains(action.getCommand())) {
-                // Action commands
-                switch (action.getCommand()) {
-                    case "placeCard":
-                        System.out.println("Player" + playerTurn + " -" + handIdx + ": " + players[playerTurn - 1].getHand().get(handIdx).getMana() + " / " + players[playerTurn - 1].mana);
-                        if (players[playerTurn - 1].getHand().get(handIdx).getMana() > players[playerTurn - 1].mana) {
-                            ObjectNode actionOutput = objectMapper.createObjectNode();
-                            actionOutput.put("command", action.getCommand());
-                            actionOutput.put("command", action.getCommand());
-                            actionOutput.put("handIdx", handIdx);
-                            actionOutput.put("error", "Not enough mana to place card on table.");
-                            output.add(actionOutput);
-                            break;
-                        }
-                        boolean placed = table.placeCard(playerTurn, players[playerTurn - 1].getHand().get(handIdx));
-                        if (!placed) {
-                            ObjectNode actionOutput = objectMapper.createObjectNode();
-                            actionOutput.put("command", action.getCommand());
-                            actionOutput.put("command", action.getCommand());
-                            actionOutput.put("handIdx", handIdx);
-                            actionOutput.put("error", "Cannot place card on table since row is full.");
-                            output.add(actionOutput);
-                            break;
-                        }
-                        players[playerTurn - 1].mana -= players[playerTurn - 1].getHand().get(handIdx).getMana();
-                        players[playerTurn - 1].getHand().remove(handIdx);
-                        System.out.println("   !!!! Total: " + players[playerTurn - 1].mana);
+            playerIdx = action.getPlayerIdx() - 1;
+            handIdx = action.getHandIdx();
+            addToOutput = true;
+            ObjectNode actionOutput = objectMapper.createObjectNode();
+            actionOutput.put("command", action.getCommand());
+            // Action commands
+            switch (action.getCommand()) {
+                case "placeCard":
+                    System.out.println("Player" + playerTurn + " -" + handIdx + ": " + players[playerTurn - 1].getHand().get(handIdx).getMana() + " / " + players[playerTurn - 1].mana);
+                    if (players[playerTurn - 1].getHand().get(handIdx).getMana() > players[playerTurn - 1].mana) {
+                        actionOutput.put("handIdx", handIdx);
+                        actionOutput.put("error", "Not enough mana to place card on table.");
                         break;
-                    case "endPlayerTurn":
-                        playerTurn = (playerTurn == 1) ? 2 : 1;
-                        if (playerTurn == startGame.getStartingPlayer()) {
-                            newRound();
-                        }
+                    }
+                    boolean placed = table.placeCard(playerTurn, players[playerTurn - 1].getHand().get(handIdx));
+                    if (!placed) {
+                        actionOutput.put("handIdx", handIdx);
+                        actionOutput.put("error", "Cannot place card on table since row is full.");
                         break;
-                    default:
-                        break;
-                }
-            } else {
-                ObjectNode actionOutput = objectMapper.createObjectNode();
-                actionOutput.put("command", action.getCommand());
+                    }
+                    players[playerTurn - 1].mana -= players[playerTurn - 1].getHand().get(handIdx).getMana();
+                    players[playerTurn - 1].getHand().remove(handIdx);
+                    System.out.println("   !!!! Total: " + players[playerTurn - 1].mana);
+                    addToOutput = false;
+                    break;
+                case "endPlayerTurn":
+                    playerTurn = (playerTurn == 1) ? 2 : 1;
+                    if (playerTurn == startGame.getStartingPlayer()) {
+                        newRound();
+                    }
+                    addToOutput = false;
+                    break;
                 // Debug commands
-                switch (action.getCommand()) {
-                    case "getPlayerDeck":
-                        actionOutput.put("playerIdx", playerIdx + 1);
-                        actionOutput.set("output", players[playerIdx].mappedDeck(objectMapper));
-                        break;
-                    case "getCardsInHand":
-                        actionOutput.put("playerIdx", playerIdx + 1);
-                        actionOutput.set("output", players[playerIdx].mappedHand(objectMapper));
-                        break;
-                    case "getPlayerHero":
-                        actionOutput.put("playerIdx", playerIdx + 1);
-                        actionOutput.set("output", players[playerIdx].mappedHero(objectMapper));
-                        break;
-                    case "getPlayerTurn":
-                        actionOutput.put("output", playerTurn);
-                        break;
-                    default:
-                        break;
-                }
-                output.add(actionOutput);
+                case "getCardsOnTable":
+                    actionOutput.set("output", table.mappedTable(objectMapper));
+                    break;
+                case "getPlayerDeck":
+                    actionOutput.put("playerIdx", playerIdx + 1);
+                    actionOutput.set("output", players[playerIdx].mappedDeck(objectMapper));
+                    break;
+                case "getCardsInHand":
+                    actionOutput.put("playerIdx", playerIdx + 1);
+                    actionOutput.set("output", players[playerIdx].mappedHand(objectMapper));
+                    break;
+                case "getPlayerHero":
+                    actionOutput.put("playerIdx", playerIdx + 1);
+                    actionOutput.set("output", players[playerIdx].mappedHero(objectMapper));
+                    break;
+                case "getPlayerTurn":
+                    actionOutput.put("output", playerTurn);
+                    break;
+                case "getPlayerMana":
+                    actionOutput.put("playerIdx", playerIdx + 1);
+                    actionOutput.put("output", players[playerIdx].mana);
+                    break;
+                default:
+                    break;
             }
+            if (addToOutput)
+                output.add(actionOutput);
         }
     }
 

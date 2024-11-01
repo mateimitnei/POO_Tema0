@@ -3,6 +3,10 @@ package game;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public final class Table {
     private static final int R_NUM = 4;
     private static final int C_NUM = 5;
@@ -17,17 +21,35 @@ public final class Table {
         }
     }
 
-    public boolean placeCard(int playerIdx, final Card card) {
+    public boolean placeCard(final int playerTurn, final Card card) {
         int placeRow = Arrays.asList(frontRow).contains(card.getName()) ? 1 : 0;
         // If it's player 2, place the card in the opposite row
-        if (playerIdx == 2) {
+        if (playerTurn == 2) {
             placeRow = (placeRow == 0) ? 3 : 2;
         }
         if (rows.get(placeRow).size() < C_NUM) {
             rows.get(placeRow).add(card);
+            System.out.println("Placed " + card.getName() + " on row " + placeRow);
             return true;
         }
         return false;
+    }
+
+    /**
+     * Returns table as a JSON object.
+     *
+     * @param objectMapper the object mapper
+     */
+    public ArrayNode mappedTable(final ObjectMapper objectMapper) {
+        ArrayNode tableArray = objectMapper.createArrayNode();
+        for (ArrayList<Card> row : rows) {
+            ArrayNode rowNode = objectMapper.createArrayNode();
+            for (Card card : row) {
+                rowNode.add(card.mappedCard(objectMapper));
+            }
+            tableArray.add(rowNode);
+        }
+        return tableArray;
     }
 
     public Card getCard(final int x, final int y) {

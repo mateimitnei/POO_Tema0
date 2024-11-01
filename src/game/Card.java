@@ -1,5 +1,7 @@
 package game;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.CardInput;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,5 +29,16 @@ public class Card {
         this.mana = card.getMana();
         this.attack = card.getAttackDamage();
         this.frozen = false; // Default
+    }
+
+    public ObjectNode mappedCard(final ObjectMapper objectMapper) {
+        ObjectNode cardNode = objectMapper.createObjectNode();
+        cardNode.put("mana", mana);
+        cardNode.put("attackDamage", attack);
+        cardNode.put("health", hp);
+        cardNode.put("description", description);
+        cardNode.putPOJO("colors", colors);
+        cardNode.put("name", name);
+        return cardNode;
     }
 }
