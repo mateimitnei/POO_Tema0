@@ -10,18 +10,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
-public class GameEngine {
+public final class GameEngine {
+    public static final int MAX_MANA = 10;
     private final Input input;
     private final ObjectMapper objectMapper;
     private final Player[] players;
     private Table table;
     private StartGameInput startGame;
     private ArrayList<ActionsInput> actions;
-    public static final String[] NO_OUTPUT_ACTIONS = {"endPlayerTurn", "placeCard",
-            "useHeroAbility", "useAttackHero", "cardUsesAbility", "cardUsesAttack"};
-    public static final int MAX_MANA = 10;
     private int playerTurn;
     private int currentRound;
 
@@ -29,27 +26,21 @@ public class GameEngine {
         this.input = input;
         objectMapper = new ObjectMapper();
         players = new Player[2];
-        players[0] = new Player(1);
-        players[1] = new Player(2);
+        players[0] = new Player();
+        players[1] = new Player();
     }
 
-    public void start(GameInput game) {
+    public void start(final GameInput game) {
         startGame = game.getStartGame();
         actions = game.getActions();
-        table = new Table();
         playerTurn = startGame.getStartingPlayer();
-        currentRound = 0;
-        // Set heroes
-        players[0].setHero(startGame.getPlayerOneHero());
-        players[1].setHero(startGame.getPlayerTwoHero());
-        // Shuffle decks
         int seed = startGame.getShuffleSeed();
-        players[0].initDeck(input.getPlayerOneDecks().getDecks().get(
+        players[0].init(startGame.getPlayerOneHero(), input.getPlayerOneDecks().getDecks().get(
                 startGame.getPlayerOneDeckIdx()), seed);
-        players[1].initDeck(input.getPlayerTwoDecks().getDecks().get(
+        players[1].init(startGame.getPlayerTwoHero(), input.getPlayerTwoDecks().getDecks().get(
                 startGame.getPlayerTwoDeckIdx()), seed);
-        players[0].mana = 0;
-        players[1].mana = 0;
+        table = new Table();
+        currentRound = 0;
         newRound();
     }
 
@@ -59,8 +50,8 @@ public class GameEngine {
      * Implementation of the main game mechanics.
      * </p>
      */
-    public final void play(ArrayNode output, int i) {
-        System.out.println("\n#### GAME " + i + " ####\n");
+    public final void play(final ArrayNode output, final int i) {
+        // System.out.println("\n#### GAME " + i + " ####\n");
         int playerIdx;
         int handIdx;
         boolean addToOutput;
@@ -69,13 +60,22 @@ public class GameEngine {
             playerIdx = action.getPlayerIdx() - 1;
             handIdx = action.getHandIdx();
             addToOutput = true;
+
             ObjectNode actionOutput = objectMapper.createObjectNode();
             actionOutput.put("command", action.getCommand());
-            // Action commands
             switch (action.getCommand()) {
+                // Action commands
+                case "endPlayerTurn":
+                    playerTurn = (playerTurn == 1) ? 2 : 1;
+                    if (playerTurn == startGame.getStartingPlayer()) {
+                        newRound();
+                    }
+                    addToOutput = false;
+                    break;
                 case "placeCard":
-                    System.out.println("Player" + playerTurn + " -" + handIdx + ": " + players[playerTurn - 1].getHand().get(handIdx).getMana() + " / " + players[playerTurn - 1].mana);
-                    if (players[playerTurn - 1].getHand().get(handIdx).getMana() > players[playerTurn - 1].mana) {
+                    // System.out.println("Player" + playerTurn + " -" + handIdx + ": "+ players[playerTurn - 1].getHand().get(handIdx).getMana() + " / " + players[playerTurn - 1].mana);
+                    if (players[playerTurn - 1].getHand().get(handIdx).getMana()
+                            > players[playerTurn - 1].mana) {
                         actionOutput.put("handIdx", handIdx);
                         actionOutput.put("error", "Not enough mana to place card on table.");
                         break;
@@ -88,15 +88,11 @@ public class GameEngine {
                     }
                     players[playerTurn - 1].mana -= players[playerTurn - 1].getHand().get(handIdx).getMana();
                     players[playerTurn - 1].getHand().remove(handIdx);
-                    System.out.println("   !!!! Total: " + players[playerTurn - 1].mana);
+                    // System.out.println("   !!!! Total: " + players[playerTurn - 1].mana);
                     addToOutput = false;
                     break;
-                case "endPlayerTurn":
-                    playerTurn = (playerTurn == 1) ? 2 : 1;
-                    if (playerTurn == startGame.getStartingPlayer()) {
-                        newRound();
-                    }
-                    addToOutput = false;
+                case "cardUsesAttack":
+
                     break;
                 // Debug commands
                 case "getCardsOnTable":
@@ -112,7 +108,7 @@ public class GameEngine {
                     break;
                 case "getPlayerHero":
                     actionOutput.put("playerIdx", playerIdx + 1);
-                    actionOutput.set("output", players[playerIdx].mappedHero(objectMapper));
+                    actionOutput.set("output", players[playerIdx].hero.mappedHero(objectMapper));
                     break;
                 case "getPlayerTurn":
                     actionOutput.put("output", playerTurn);
@@ -124,8 +120,9 @@ public class GameEngine {
                 default:
                     break;
             }
-            if (addToOutput)
+            if (addToOutput) {
                 output.add(actionOutput);
+            }
         }
     }
 
@@ -135,10 +132,6 @@ public class GameEngine {
             player.drawCard();
             player.mana += (currentRound > 10) ? MAX_MANA : currentRound;
         }
-        System.out.println("_________\nMana: + " + ((currentRound > 10) ? MAX_MANA : currentRound) + "\n---------");
-    }
-
-    private int getPlayerTurn(StartGameInput startGame) {
-        return startGame.getStartingPlayer();
+        // System.out.println("_________\nMana: + " + ((currentRound > 10) ? MAX_MANA : currentRound) + "\n---------");
     }
 }

@@ -31,7 +31,7 @@ public class Card {
         this.frozen = false; // Default
     }
 
-    public ObjectNode mappedCard(final ObjectMapper objectMapper) {
+    public final ObjectNode mappedCard(final ObjectMapper objectMapper) {
         ObjectNode cardNode = objectMapper.createObjectNode();
         cardNode.put("mana", mana);
         cardNode.put("attackDamage", attack);

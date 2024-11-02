@@ -12,30 +12,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-@Getter @Setter
+@Getter
 public final class Player {
-    private int id;
     public int mana;
     public int wins;
+    public Hero hero;
     private ArrayList<Card> hand;
     private ArrayList<Card> deck;
-    private Hero hero;
 
-    public Player(final int id) {
-        this.id = id;
-        mana = 0;
+    public Player() {
         wins = 0;
         hand = new ArrayList<>();
         deck = new ArrayList<>();
     }
 
-    public void setHero(final CardInput card) {
-        hero = new Hero(card);
-    }
-
-    public void initDeck(final ArrayList<CardInput> rawDeck, final int seed) {
-        for (CardInput card : rawDeck) {
-            deck.add(new Card(card));
+    public void init(final CardInput heroCard, final ArrayList<CardInput> inDeck, final int seed) {
+        mana = 0;
+        hero = new Hero(heroCard);
+        deck.clear();
+        hand.clear();
+        for (CardInput card : inDeck) {
+            this.deck.add(new Card(card));
         }
         Collections.shuffle(deck, new Random(seed));
     }
@@ -71,20 +68,5 @@ public final class Player {
             deckArray.add(card.mappedCard(objectMapper));
         }
         return deckArray;
-    }
-
-    /**
-     * Returns hero as a JSON object.
-     *
-     * @param objectMapper the object mapper
-     */
-    public ObjectNode mappedHero(final ObjectMapper objectMapper) {
-        ObjectNode heroNode = objectMapper.createObjectNode();
-        heroNode.put("mana", hero.getMana());
-        heroNode.put("description", hero.getDescription());
-        heroNode.putPOJO("colors", hero.getColors());
-        heroNode.put("name", hero.getName());
-        heroNode.put("health", hero.getHp());
-        return heroNode;
     }
 }
