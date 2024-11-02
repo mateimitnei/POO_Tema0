@@ -21,6 +21,10 @@ public final class GameEngine {
     private ArrayList<ActionsInput> actions;
     private int playerTurn;
     private int currentRound;
+    // Variables for the play method:
+    private boolean addToOutput;
+    private int playerIdx;
+    private int handIdx;
 
     public GameEngine(final Input input) {
         this.input = input;
@@ -50,51 +54,34 @@ public final class GameEngine {
      * Implementation of the main game mechanics.
      * </p>
      */
-    public final void play(final ArrayNode output, final int i) {
+    public void play(final ArrayNode output, final int i) {
         // System.out.println("\n#### GAME " + i + " ####\n");
-        int playerIdx;
-        int handIdx;
-        boolean addToOutput;
 
         for (ActionsInput action : actions) {
+
             playerIdx = action.getPlayerIdx() - 1;
             handIdx = action.getHandIdx();
             addToOutput = true;
-
             ObjectNode actionOutput = objectMapper.createObjectNode();
             actionOutput.put("command", action.getCommand());
+
             switch (action.getCommand()) {
                 // Action commands
                 case "endPlayerTurn":
-                    playerTurn = (playerTurn == 1) ? 2 : 1;
-                    if (playerTurn == startGame.getStartingPlayer()) {
-                        newRound();
-                    }
-                    addToOutput = false;
+                    endPlayerTurnHandler();
                     break;
                 case "placeCard":
                     // System.out.println("Player" + playerTurn + " -" + handIdx + ": "+ players[playerTurn - 1].getHand().get(handIdx).getMana() + " / " + players[playerTurn - 1].mana);
-                    if (players[playerTurn - 1].getHand().get(handIdx).getMana()
-                            > players[playerTurn - 1].mana) {
-                        actionOutput.put("handIdx", handIdx);
-                        actionOutput.put("error", "Not enough mana to place card on table.");
-                        break;
-                    }
-                    boolean placed = table.placeCard(playerTurn, players[playerTurn - 1].getHand().get(handIdx));
-                    if (!placed) {
-                        actionOutput.put("handIdx", handIdx);
-                        actionOutput.put("error", "Cannot place card on table since row is full.");
-                        break;
-                    }
-                    players[playerTurn - 1].mana -= players[playerTurn - 1].getHand().get(handIdx).getMana();
-                    players[playerTurn - 1].getHand().remove(handIdx);
+                    placeCardHandler(actionOutput);
                     // System.out.println("   !!!! Total: " + players[playerTurn - 1].mana);
-                    addToOutput = false;
                     break;
                 case "cardUsesAttack":
-
+                    cardUsesAttackHandler(action, actionOutput);
                     break;
                 // Debug commands
+                case "getCardAtPosition":
+                    getCardAtPositionHandler(action, actionOutput);
+                    break;
                 case "getCardsOnTable":
                     actionOutput.set("output", table.mappedTable(objectMapper));
                     break;
@@ -126,12 +113,74 @@ public final class GameEngine {
         }
     }
 
-    public void newRound() {
+    private void newRound() {
         currentRound++;
         for (Player player : players) {
             player.drawCard();
             player.mana += (currentRound > 10) ? MAX_MANA : currentRound;
         }
         // System.out.println("_________\nMana: + " + ((currentRound > 10) ? MAX_MANA : currentRound) + "\n---------");
+    }
+
+    // Handlers for some of the switch cases:
+
+    private void endPlayerTurnHandler() {
+        playerTurn = (playerTurn == 1) ? 2 : 1;
+        table.resetPlayerCards(playerTurn);
+        if (playerTurn == startGame.getStartingPlayer()) {
+            newRound();
+        }
+        addToOutput = false;
+    }
+
+    private void placeCardHandler(ObjectNode actionOutput) {
+        if (players[playerTurn - 1].getHand().get(handIdx).getMana()
+                > players[playerTurn - 1].mana) {
+            actionOutput.put("handIdx", handIdx);
+            actionOutput.put("error", "Not enough mana to place card on table.");
+            return;
+        }
+        boolean placed = table.placeCard(playerTurn, players[playerTurn - 1].getHand().get(handIdx));
+        if (!placed) {
+            actionOutput.put("handIdx", handIdx);
+            actionOutput.put("error", "Cannot place card on table since row is full.");
+            return;
+        }
+        players[playerTurn - 1].mana -= players[playerTurn - 1].getHand().get(handIdx).getMana();
+        players[playerTurn - 1].getHand().remove(handIdx);
+        addToOutput = false;
+    }
+
+    private void cardUsesAttackHandler(ActionsInput action, ObjectNode actionOutput) {
+        int x1 = action.getCardAttacker().getX();
+        int y1 = action.getCardAttacker().getY();
+        int x2 = action.getCardAttacked().getX();
+        int y2 = action.getCardAttacked().getY();
+        ObjectNode cardAttacker = objectMapper.createObjectNode();
+        cardAttacker.put("x", x1);
+        cardAttacker.put("y", y1);
+        ObjectNode cardAttacked = objectMapper.createObjectNode();
+        cardAttacked.put("x", x2);
+        cardAttacked.put("y", y2);
+        actionOutput.set("cardAttacker", cardAttacker);
+        actionOutput.set("cardAttacked", cardAttacked);
+        String error = table.attack(x1, y1, x2, y2);
+        if (error != null) {
+            actionOutput.put("error", error);
+            return;
+        }
+        addToOutput = false;
+    }
+
+    private void getCardAtPositionHandler(ActionsInput action, ObjectNode actionOutput) {
+        int x = action.getX();
+        int y = action.getY();
+        actionOutput.put("x", x);
+        actionOutput.put("y", y);
+        if (table.getCard(x, y) == null) {
+            actionOutput.put("output", "No card available at that position.");
+            return;
+        }
+        actionOutput.set("output", table.getCard(x, y).mappedCard(objectMapper));
     }
 }

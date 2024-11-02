@@ -7,9 +7,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 @Getter
 public class Card {
+    public static final String[] TANKS = {"Warden", "Goliath"};
     private String name;
     private String description;
     private ArrayList<String> colors;
@@ -19,7 +21,8 @@ public class Card {
     @Setter
     private int attack;
     @Setter
-    private boolean frozen;
+    public boolean frozen;
+    public boolean alreadyAttacked;
 
     public Card(final CardInput card) {
         this.name = card.getName();
@@ -29,6 +32,12 @@ public class Card {
         this.mana = card.getMana();
         this.attack = card.getAttackDamage();
         this.frozen = false; // Default
+        alreadyAttacked = false;
+        frozen = false;
+    }
+
+    public boolean isTank() {
+        return Arrays.asList(TANKS).contains(name);
     }
 
     public final ObjectNode mappedCard(final ObjectMapper objectMapper) {
