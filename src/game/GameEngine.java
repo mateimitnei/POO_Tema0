@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 
 public final class GameEngine {
-    public static final int MAX_MANA = 10;
+    private static final int MAX_MANA = 10;
     private final Input input;
     private final ObjectMapper objectMapper;
     private final Player[] players;
@@ -55,7 +55,6 @@ public final class GameEngine {
      * </p>
      */
     public void play(final ArrayNode output, final int i) {
-        // System.out.println("\n#### GAME " + i + " ####\n");
 
         for (ActionsInput action : actions) {
 
@@ -71,12 +70,13 @@ public final class GameEngine {
                     endPlayerTurnHandler();
                     break;
                 case "placeCard":
-                    // System.out.println("Player" + playerTurn + " -" + handIdx + ": "+ players[playerTurn - 1].getHand().get(handIdx).getMana() + " / " + players[playerTurn - 1].mana);
                     placeCardHandler(actionOutput);
-                    // System.out.println("   !!!! Total: " + players[playerTurn - 1].mana);
                     break;
                 case "cardUsesAttack":
-                    cardUsesAttackHandler(action, actionOutput);
+                    cardPlayHandler(action, actionOutput, "attack");
+                    break;
+                case "cardUsesAbility":
+                    cardPlayHandler(action, actionOutput, "ability");
                     break;
                 // Debug commands
                 case "getCardAtPosition":
@@ -117,9 +117,8 @@ public final class GameEngine {
         currentRound++;
         for (Player player : players) {
             player.drawCard();
-            player.mana += (currentRound > 10) ? MAX_MANA : currentRound;
+            player.mana += Math.min(currentRound, MAX_MANA);
         }
-        // System.out.println("_________\nMana: + " + ((currentRound > 10) ? MAX_MANA : currentRound) + "\n---------");
     }
 
     // Handlers for some of the switch cases:
@@ -133,14 +132,15 @@ public final class GameEngine {
         addToOutput = false;
     }
 
-    private void placeCardHandler(ObjectNode actionOutput) {
+    private void placeCardHandler(final ObjectNode actionOutput) {
         if (players[playerTurn - 1].getHand().get(handIdx).getMana()
                 > players[playerTurn - 1].mana) {
             actionOutput.put("handIdx", handIdx);
             actionOutput.put("error", "Not enough mana to place card on table.");
             return;
         }
-        boolean placed = table.placeCard(playerTurn, players[playerTurn - 1].getHand().get(handIdx));
+        boolean placed = table.placeCard(playerTurn,
+                players[playerTurn - 1].getHand().get(handIdx));
         if (!placed) {
             actionOutput.put("handIdx", handIdx);
             actionOutput.put("error", "Cannot place card on table since row is full.");
@@ -151,7 +151,8 @@ public final class GameEngine {
         addToOutput = false;
     }
 
-    private void cardUsesAttackHandler(ActionsInput action, ObjectNode actionOutput) {
+    private void cardPlayHandler(final ActionsInput action, final ObjectNode actionOutput,
+                                 final String playType) {
         int x1 = action.getCardAttacker().getX();
         int y1 = action.getCardAttacker().getY();
         int x2 = action.getCardAttacked().getX();
@@ -164,15 +165,23 @@ public final class GameEngine {
         cardAttacked.put("y", y2);
         actionOutput.set("cardAttacker", cardAttacker);
         actionOutput.set("cardAttacked", cardAttacked);
-        String error = table.attack(x1, y1, x2, y2);
-        if (error != null) {
-            actionOutput.put("error", error);
-            return;
+        if (playType.equals("attack")) {
+            String error = table.attack(x1, y1, x2, y2);
+            if (error != null) {
+                actionOutput.put("error", error);
+                return;
+            }
+        } else if (playType.equals("ability")) {
+            String error = table.ability(x1, y1, x2, y2);
+            if (error != null) {
+                actionOutput.put("error", error);
+                return;
+            }
         }
         addToOutput = false;
     }
 
-    private void getCardAtPositionHandler(ActionsInput action, ObjectNode actionOutput) {
+    private void getCardAtPositionHandler(final ActionsInput action, final ObjectNode actionOutput) {
         int x = action.getX();
         int y = action.getY();
         actionOutput.put("x", x);

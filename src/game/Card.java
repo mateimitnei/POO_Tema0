@@ -12,17 +12,18 @@ import java.util.Arrays;
 @Getter
 public class Card {
     public static final String[] TANKS = {"Warden", "Goliath"};
-    private String name;
-    private String description;
-    private ArrayList<String> colors;
+    private final String name;
+    private final String description;
+    private final ArrayList<String> colors;
     @Setter
     private int hp;
-    private int mana;
+    private final int mana;
     @Setter
     private int attack;
     @Setter
-    public boolean frozen;
-    public boolean alreadyAttacked;
+    private boolean frozen;
+    @Setter
+    private boolean alreadyAttacked;
 
     public Card(final CardInput card) {
         this.name = card.getName();
@@ -36,7 +37,7 @@ public class Card {
         frozen = false;
     }
 
-    public boolean isTank() {
+    public final boolean isTank() {
         return Arrays.asList(TANKS).contains(name);
     }
 
