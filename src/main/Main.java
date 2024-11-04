@@ -70,11 +70,9 @@ public final class Main {
         ArrayNode output = objectMapper.createArrayNode();
         GameEngine engine = new GameEngine(inputData);
         // System.out.println("********* NEW FILE *********");
-        int i = 0;
         for (GameInput game : inputData.getGames()) {
-            i++;
             engine.start(game);
-            engine.play(output, i);
+            engine.play(output);
         }
 
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath2), output);

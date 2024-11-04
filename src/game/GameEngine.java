@@ -54,7 +54,7 @@ public final class GameEngine {
      * Implementation of the main game mechanics.
      * </p>
      */
-    public void play(final ArrayNode output, final int i) {
+    public void play(final ArrayNode output) {
 
         for (ActionsInput action : actions) {
 
@@ -77,6 +77,9 @@ public final class GameEngine {
                     break;
                 case "cardUsesAbility":
                     cardPlayHandler(action, actionOutput, "ability");
+                    break;
+                case "useAttackHero":
+                    useAttackHeroHandler(action, actionOutput);
                     break;
                 // Debug commands
                 case "getCardAtPosition":
@@ -177,6 +180,25 @@ public final class GameEngine {
                 actionOutput.put("error", error);
                 return;
             }
+        }
+        addToOutput = false;
+    }
+
+    private void useAttackHeroHandler(ActionsInput action, ObjectNode actionOutput) {
+        int x = action.getCardAttacker().getX();
+        int y = action.getCardAttacker().getY();
+        ObjectNode cardAttacker = objectMapper.createObjectNode();
+        cardAttacker.put("x", x);
+        cardAttacker.put("y", y);
+        actionOutput.set("cardAttacker", cardAttacker);
+        String output = table.attackHero(x, y,playerTurn, players);
+        if (output != null) {
+            if (output.equals("Game over!")) {
+                actionOutput.put("output", output);
+                return;
+            }
+            actionOutput.put("error", output);
+            return;
         }
         addToOutput = false;
     }

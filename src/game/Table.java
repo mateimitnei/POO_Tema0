@@ -154,6 +154,23 @@ public final class Table {
         return null;
     }
 
+    public String attackHero(final int x, final int y, final int playerTurn, final Player[] players) {
+        Card attackCard = getCard(x, y);
+        if (attackCard.isFrozen()) {
+            return "Attacker card is frozen.";
+        }
+        if (attackCard.isAlreadyAttacked()) {
+            return "Attacker card has already attacked this turn.";
+        }
+        int targetIdx = 1;
+        if (playerTurn == 1) {
+            targetIdx = 2;
+        }
+
+        attackCard.setAlreadyAttacked(true);
+        return null;
+    }
+
     /**
      * Returns table as a JSON object.
      *
