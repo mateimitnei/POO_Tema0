@@ -23,7 +23,7 @@ public class Card {
     @Setter
     private boolean frozen;
     @Setter
-    private boolean alreadyAttacked;
+    private boolean usedAttack;
 
     public Card(final CardInput card) {
         this.name = card.getName();
@@ -33,7 +33,7 @@ public class Card {
         this.mana = card.getMana();
         this.attack = card.getAttackDamage();
         this.frozen = false; // Default
-        alreadyAttacked = false;
+        usedAttack = false;
         frozen = false;
     }
 

@@ -31,17 +31,18 @@ public final class Table {
         return null;
     }
 
-    public void resetPlayerCards(final int playerTurn) {
+    public void resetPlayerCards(final int playerTurn, final Hero hero) {
         int r = 0;
         if (playerTurn == 1) {
             r = 2;
         }
         for (int i = r; i <= (r + 1); i++) {
             for (Card card : rows.get(i)) {
-                card.setAlreadyAttacked(false);
+                card.setUsedAttack(false);
                 card.setFrozen(false);
             }
         }
+        hero.setUsedAttack(false);
     }
 
     public boolean placeCard(final int playerTurn, final Card card) {
@@ -64,7 +65,7 @@ public final class Table {
         if (x1 / 2 == x2 / 2) {
             return "Attacked card does not belong to the enemy.";
         }
-        if (attackCard.isAlreadyAttacked()) {
+        if (attackCard.isUsedAttack()) {
             return "Attacker card has already attacked this turn.";
         }
         if (attackCard.isFrozen()) {
@@ -91,7 +92,7 @@ public final class Table {
         if (targetCard.getHp() <= 0) {
             rows.get(x2).remove(y2);
         }
-        attackCard.setAlreadyAttacked(true);
+        attackCard.setUsedAttack(true);
         return null;
     }
 
@@ -101,7 +102,7 @@ public final class Table {
         if (attackCard.isFrozen()) {
             return "Attacker card is frozen.";
         }
-        if (attackCard.isAlreadyAttacked()) {
+        if (attackCard.isUsedAttack()) {
             return "Attacker card has already attacked this turn.";
         }
         if (attackCard.getName().equals("Disciple")) {
@@ -150,24 +151,91 @@ public final class Table {
                 }
             }
         }
-        attackCard.setAlreadyAttacked(true);
+        attackCard.setUsedAttack(true);
         return null;
     }
 
-    public String attackHero(final int x, final int y, final int playerTurn, final Player[] players) {
+    public String attackHero(final int x, final int y, final int playerTurn,
+                             final Player[] players) {
         Card attackCard = getCard(x, y);
         if (attackCard.isFrozen()) {
             return "Attacker card is frozen.";
         }
-        if (attackCard.isAlreadyAttacked()) {
+        if (attackCard.isUsedAttack()) {
             return "Attacker card has already attacked this turn.";
         }
-        int targetIdx = 1;
+        int targetIdx = 0;
+        int targetFirstRow = 2;
         if (playerTurn == 1) {
-            targetIdx = 2;
+            targetIdx = 1;
+            targetFirstRow = 1;
         }
+        boolean hasTank = false;
+        for (Card card : rows.get(targetFirstRow)) {
+            if (card.isTank()) {
+                hasTank = true;
+            }
+        }
+        if (hasTank) {
+            return "Attacked card is not of type 'Tank'.";
+        }
+        players[targetIdx].getHero().setHp(
+                players[targetIdx].getHero().getHp() - attackCard.getAttack());
+        if (players[targetIdx].getHero().getHp() <= 0) {
+            return (playerTurn == 1) ? "1" : "2";
+        }
+        attackCard.setUsedAttack(true);
+        return null;
+    }
 
-        attackCard.setAlreadyAttacked(true);
+    public String heroAbility(final int targetRow, final int playerTurn, final Player[] players) {
+        Hero hero = players[playerTurn - 1].getHero();
+        if (players[playerTurn - 1].getMana() < hero.getMana()) {
+            return "Not enough mana to use hero's ability.";
+        }
+        if (hero.isUsedAttack()) {
+            return "Hero has already attacked this turn.";
+        }
+        if (hero.getName().equals("Lord Royce") || hero.getName().equals("Empress Thorina")) {
+            if ((playerTurn == 1 && targetRow / 2 == 1)
+                    || (playerTurn == 2 && targetRow / 2 == 0)) {
+                return "Selected row does not belong to the enemy.";
+            }
+            if (hero.getName().equals("Lord Royce")) {
+                for (Card card : rows.get(targetRow)) {
+                    card.setFrozen(true);
+                }
+            } else if (hero.getName().equals("Empress Thorina")) {
+                int highestHp = -1;
+                int idx = -1;
+                for (int i = 0; i < rows.get(targetRow).size(); i++) {
+                    if (rows.get(targetRow).get(i).getHp() > highestHp) {
+                        highestHp = rows.get(targetRow).get(i).getHp();
+                        idx = i;
+                    }
+                }
+                if (idx != -1) {
+                    rows.get(targetRow).remove(idx);
+                }
+            }
+        } else if (hero.getName().equals("General Kocioraw")
+                || hero.getName().equals("King Mudface")) {
+            if ((playerTurn == 1 && targetRow / 2 == 0)
+                    || (playerTurn == 2 && targetRow / 2 == 1)) {
+                return "Selected row does not belong to the current player.";
+            }
+            if (hero.getName().equals("General Kocioraw")) {
+                for (Card card : rows.get(targetRow)) {
+                    card.setAttack(card.getAttack() + 1);
+                }
+            } else if (hero.getName().equals("King Mudface")) {
+                for (Card card : rows.get(targetRow)) {
+                    card.setHp(card.getHp() + 1);
+                }
+            }
+        }
+        players[playerTurn - 1].setMana(players[playerTurn - 1].getMana() - hero.getMana());
+        hero.setUsedAttack(true);
         return null;
     }
 
@@ -176,14 +244,22 @@ public final class Table {
      *
      * @param objectMapper the object mapper
      */
-    public ArrayNode mappedTable(final ObjectMapper objectMapper) {
+    public ArrayNode mappedTable(final ObjectMapper objectMapper, final boolean onlyFrozenCards) {
         ArrayNode tableArray = objectMapper.createArrayNode();
+        ArrayNode frozenArray = objectMapper.createArrayNode();
         for (ArrayList<Card> row : rows) {
             ArrayNode rowNode = objectMapper.createArrayNode();
             for (Card card : row) {
-                rowNode.add(card.mappedCard(objectMapper));
+                if (onlyFrozenCards && card.isFrozen()) {
+                    frozenArray.add(card.mappedCard(objectMapper));
+                } else {
+                    rowNode.add(card.mappedCard(objectMapper));
+                }
             }
             tableArray.add(rowNode);
+        }
+        if (onlyFrozenCards) {
+            return frozenArray;
         }
         return tableArray;
     }

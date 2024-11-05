@@ -21,6 +21,7 @@ public final class GameEngine {
     private ArrayList<ActionsInput> actions;
     private int playerTurn;
     private int currentRound;
+    private int gamesPlayed;
     // Variables for the play method:
     private boolean addToOutput;
     private int playerIdx;
@@ -32,6 +33,7 @@ public final class GameEngine {
         players = new Player[2];
         players[0] = new Player();
         players[1] = new Player();
+        gamesPlayed = 0;
     }
 
     public void start(final GameInput game) {
@@ -81,12 +83,15 @@ public final class GameEngine {
                 case "useAttackHero":
                     useAttackHeroHandler(action, actionOutput);
                     break;
+                case "useHeroAbility":
+                    useHeroAbilityHandler(action, actionOutput);
+                    break;
                 // Debug commands
                 case "getCardAtPosition":
                     getCardAtPositionHandler(action, actionOutput);
                     break;
                 case "getCardsOnTable":
-                    actionOutput.set("output", table.mappedTable(objectMapper));
+                    actionOutput.set("output", table.mappedTable(objectMapper, false));
                     break;
                 case "getPlayerDeck":
                     actionOutput.put("playerIdx", playerIdx + 1);
@@ -98,14 +103,28 @@ public final class GameEngine {
                     break;
                 case "getPlayerHero":
                     actionOutput.put("playerIdx", playerIdx + 1);
-                    actionOutput.set("output", players[playerIdx].hero.mappedHero(objectMapper));
+                    actionOutput.set("output",
+                            players[playerIdx].getHero().mappedHero(objectMapper));
                     break;
                 case "getPlayerTurn":
                     actionOutput.put("output", playerTurn);
                     break;
                 case "getPlayerMana":
                     actionOutput.put("playerIdx", playerIdx + 1);
-                    actionOutput.put("output", players[playerIdx].mana);
+                    actionOutput.put("output", players[playerIdx].getMana());
+                    break;
+                case "getFrozenCardsOnTable" :
+                    actionOutput.set("output", table.mappedTable(objectMapper, true));
+                    break;
+                // Statistics commands
+                case "getTotalGamesPlayed":
+                    actionOutput.put("output", gamesPlayed);
+                    break;
+                case "getPlayerOneWins":
+                    actionOutput.put("output", players[0].getWins());
+                    break;
+                case "getPlayerTwoWins":
+                    actionOutput.put("output", players[1].getWins());
                     break;
                 default:
                     break;
@@ -120,15 +139,15 @@ public final class GameEngine {
         currentRound++;
         for (Player player : players) {
             player.drawCard();
-            player.mana += Math.min(currentRound, MAX_MANA);
+            player.setMana(player.getMana() + Math.min(currentRound, MAX_MANA));
         }
     }
 
     // Handlers for some of the switch cases:
 
     private void endPlayerTurnHandler() {
+        table.resetPlayerCards(playerTurn, players[playerTurn - 1].getHero());
         playerTurn = (playerTurn == 1) ? 2 : 1;
-        table.resetPlayerCards(playerTurn);
         if (playerTurn == startGame.getStartingPlayer()) {
             newRound();
         }
@@ -137,7 +156,7 @@ public final class GameEngine {
 
     private void placeCardHandler(final ObjectNode actionOutput) {
         if (players[playerTurn - 1].getHand().get(handIdx).getMana()
-                > players[playerTurn - 1].mana) {
+                > players[playerTurn - 1].getMana()) {
             actionOutput.put("handIdx", handIdx);
             actionOutput.put("error", "Not enough mana to place card on table.");
             return;
@@ -149,7 +168,8 @@ public final class GameEngine {
             actionOutput.put("error", "Cannot place card on table since row is full.");
             return;
         }
-        players[playerTurn - 1].mana -= players[playerTurn - 1].getHand().get(handIdx).getMana();
+        players[playerTurn - 1].setMana(players[playerTurn - 1].getMana()
+                - players[playerTurn - 1].getHand().get(handIdx).getMana());
         players[playerTurn - 1].getHand().remove(handIdx);
         addToOutput = false;
     }
@@ -184,17 +204,26 @@ public final class GameEngine {
         addToOutput = false;
     }
 
-    private void useAttackHeroHandler(ActionsInput action, ObjectNode actionOutput) {
+    private void useAttackHeroHandler(final ActionsInput action, final ObjectNode actionOutput) {
         int x = action.getCardAttacker().getX();
         int y = action.getCardAttacker().getY();
         ObjectNode cardAttacker = objectMapper.createObjectNode();
         cardAttacker.put("x", x);
         cardAttacker.put("y", y);
         actionOutput.set("cardAttacker", cardAttacker);
-        String output = table.attackHero(x, y,playerTurn, players);
+        String output = table.attackHero(x, y, playerTurn, players);
         if (output != null) {
-            if (output.equals("Game over!")) {
-                actionOutput.put("output", output);
+            if (output.equals("1")) {
+                actionOutput.removeAll();
+                actionOutput.put("gameEnded", "Player one killed the enemy hero.");
+                players[0].setWins(players[0].getWins() + 1);
+                gamesPlayed++;
+                return;
+            } else if (output.equals("2")) {
+                actionOutput.removeAll();
+                actionOutput.put("gameEnded", "Player two killed the enemy hero.");
+                players[1].setWins(players[1].getWins() + 1);
+                gamesPlayed++;
                 return;
             }
             actionOutput.put("error", output);
@@ -203,7 +232,8 @@ public final class GameEngine {
         addToOutput = false;
     }
 
-    private void getCardAtPositionHandler(final ActionsInput action, final ObjectNode actionOutput) {
+    private void getCardAtPositionHandler(final ActionsInput action,
+                                          final ObjectNode actionOutput) {
         int x = action.getX();
         int y = action.getY();
         actionOutput.put("x", x);
@@ -213,5 +243,15 @@ public final class GameEngine {
             return;
         }
         actionOutput.set("output", table.getCard(x, y).mappedCard(objectMapper));
+    }
+
+    private void useHeroAbilityHandler(final ActionsInput action, final ObjectNode actionOutput) {
+        actionOutput.put("affectedRow", action.getAffectedRow());
+        String error = table.heroAbility(action.getAffectedRow(), playerTurn, players);
+        if (error != null) {
+            actionOutput.put("error", error);
+            return;
+        }
+        addToOutput = false;
     }
 }

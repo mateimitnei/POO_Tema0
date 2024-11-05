@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fileio.CardInput;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,9 +13,12 @@ import java.util.Random;
 
 @Getter
 public final class Player {
-    public int mana;
-    public int wins;
-    public Hero hero;
+    @Setter
+    private int mana;
+    @Setter
+    private int wins;
+    @Setter
+    private Hero hero;
     private ArrayList<Card> hand;
     private ArrayList<Card> deck;
 
