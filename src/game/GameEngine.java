@@ -11,6 +11,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.ArrayList;
 
+/**
+ * The main game engine that handles the game logic and actions.
+ * Uses all classes in the {@link game} package to process the input.
+ */
 public final class GameEngine {
     private static final int MAX_MANA = 10;
     private final Input input;
@@ -22,7 +26,6 @@ public final class GameEngine {
     private int playerTurn;
     private int currentRound;
     private int gamesPlayed;
-    // Variables for the play method:
     private boolean addToOutput;
     private int playerIdx;
     private int handIdx;
@@ -36,25 +39,27 @@ public final class GameEngine {
         gamesPlayed = 0;
     }
 
+    /**
+     * Initializes the game with the given game input.
+     * @param game the current game input data
+     */
     public void start(final GameInput game) {
         startGame = game.getStartGame();
         actions = game.getActions();
         playerTurn = startGame.getStartingPlayer();
         int seed = startGame.getShuffleSeed();
-        players[0].init(startGame.getPlayerOneHero(), input.getPlayerOneDecks().getDecks().get(
-                startGame.getPlayerOneDeckIdx()), seed);
-        players[1].init(startGame.getPlayerTwoHero(), input.getPlayerTwoDecks().getDecks().get(
-                startGame.getPlayerTwoDeckIdx()), seed);
+        players[0].init(startGame.getPlayerOneHero(),
+                input.getPlayerOneDecks().getDecks().get(startGame.getPlayerOneDeckIdx()), seed);
+        players[1].init(startGame.getPlayerTwoHero(),
+                input.getPlayerTwoDecks().getDecks().get(startGame.getPlayerTwoDeckIdx()), seed);
         table = new Table();
         currentRound = 0;
         newRound();
     }
 
     /**
-     * Applies actions to the input.
-     * <p>
-     * Implementation of the main game mechanics.
-     * </p>
+     * Applies actions to the game.
+     * @param output the output array node to store the results of the actions
      */
     public void play(final ArrayNode output) {
 
@@ -154,6 +159,10 @@ public final class GameEngine {
         addToOutput = false;
     }
 
+    /**
+     * Handles the placement of a card on the table.
+     * @param actionOutput the output node to store the result of the action
+     */
     private void placeCardHandler(final ObjectNode actionOutput) {
         if (players[playerTurn - 1].getHand().get(handIdx).getMana()
                 > players[playerTurn - 1].getMana()) {
@@ -174,6 +183,12 @@ public final class GameEngine {
         addToOutput = false;
     }
 
+    /**
+     * Handles the play of a card (attack or ability).
+     * @param action the action input data
+     * @param actionOutput the output node to store the result of the action
+     * @param playType "attack" or "ability"
+     */
     private void cardPlayHandler(final ActionsInput action, final ObjectNode actionOutput,
                                  final String playType) {
         int x1 = action.getCardAttacker().getX();
@@ -204,6 +219,11 @@ public final class GameEngine {
         addToOutput = false;
     }
 
+    /**
+     * Handles the attack on the enemy hero.
+     * @param action the action input data
+     * @param actionOutput the output node to store the result of the action
+     */
     private void useAttackHeroHandler(final ActionsInput action, final ObjectNode actionOutput) {
         int x = action.getCardAttacker().getX();
         int y = action.getCardAttacker().getY();
@@ -232,6 +252,11 @@ public final class GameEngine {
         addToOutput = false;
     }
 
+    /**
+     * Handles the info of a card on the table.
+     * @param action the action input data
+     * @param actionOutput the output node to store the result of the action
+     */
     private void getCardAtPositionHandler(final ActionsInput action,
                                           final ObjectNode actionOutput) {
         int x = action.getX();
@@ -245,6 +270,11 @@ public final class GameEngine {
         actionOutput.set("output", table.getCard(x, y).mappedCard(objectMapper));
     }
 
+    /**
+     * Handles the use of a hero's ability.
+     * @param action the action input data
+     * @param actionOutput the output node to store the result of the action
+     */
     private void useHeroAbilityHandler(final ActionsInput action, final ObjectNode actionOutput) {
         actionOutput.put("affectedRow", action.getAffectedRow());
         String error = table.heroAbility(action.getAffectedRow(), playerTurn, players);

@@ -1,18 +1,6 @@
 Starting audit...
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Card.java:44:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\GameEngine.java:39:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Hero.java:15:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Player.java:31:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Player.java:42:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:26:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:34:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:48:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:49:80: '3' is a magic number. [MagicNumber]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:62:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:75:30: '3' is a magic number. [MagicNumber]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:99:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:118:34: '3' is a magic number. [MagicNumber]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:158:5: Missing a Javadoc comment. [MissingJavadocMethod]
-[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:191:5: Missing a Javadoc comment. [MissingJavadocMethod]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:72:80: '3' is a magic number. [MagicNumber]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:106:30: '3' is a magic number. [MagicNumber]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0\.\src\game\Table.java:157:34: '3' is a magic number. [MagicNumber]
 Audit done.
-Checkstyle ends with 15 errors.
+Checkstyle ends with 3 errors.

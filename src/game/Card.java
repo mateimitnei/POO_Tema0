@@ -9,6 +9,9 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * Represents a card in the game.
+ */
 @Getter
 public class Card {
     public static final String[] TANKS = {"Warden", "Goliath"};
@@ -25,6 +28,10 @@ public class Card {
     @Setter
     private boolean usedAttack;
 
+    /**
+     * Constructor for the card.
+     * @param card a card from the input
+     */
     public Card(final CardInput card) {
         this.name = card.getName();
         this.description = card.getDescription();
@@ -32,7 +39,6 @@ public class Card {
         this.hp = card.getHealth();
         this.mana = card.getMana();
         this.attack = card.getAttackDamage();
-        this.frozen = false; // Default
         usedAttack = false;
         frozen = false;
     }
@@ -41,6 +47,11 @@ public class Card {
         return Arrays.asList(TANKS).contains(name);
     }
 
+    /**
+     * Maps the card into a JSON object.
+     * @param objectMapper the object mapper
+     * @return the JSON object
+     */
     public final ObjectNode mappedCard(final ObjectMapper objectMapper) {
         ObjectNode cardNode = objectMapper.createObjectNode();
         cardNode.put("mana", mana);
