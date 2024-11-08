@@ -16,7 +16,6 @@ public final class Table {
     private static final int C_NUM = 5;
     public static final String[] FRONT_ROW = {"Goliath", "Warden", "The Ripper", "Miraj"};
     public static final String[] ATTACK_ABILITIES = {"The Ripper", "Miraj", "The Cursed One"};
-    // public static String[] backRow = {"Sentinel", "Berserker", "The Cursed One", "Disciple"};
     private final ArrayList<ArrayList<Card>> rows;
 
     /**
@@ -76,7 +75,6 @@ public final class Table {
         }
         if (rows.get(placeRow).size() < C_NUM) {
             rows.get(placeRow).add(card);
-            // System.out.println("Placed " + card.getName() + " on row " + placeRow);
             return true;
         }
         return false;
