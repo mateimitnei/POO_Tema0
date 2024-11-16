@@ -10,6 +10,12 @@ import org.poo.game.heroes.EmpressThorina;
 import org.poo.game.heroes.GeneralKocioraw;
 import org.poo.game.heroes.KingMudface;
 import org.poo.game.heroes.LordRoyce;
+import org.poo.game.minions.Disciple;
+import org.poo.game.minions.Goliath;
+import org.poo.game.minions.Miraj;
+import org.poo.game.minions.TheCursedOne;
+import org.poo.game.minions.TheRipper;
+import org.poo.game.minions.Warden;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,13 +42,16 @@ public final class Player {
     }
 
     /**
-     * Initializes the player with a hero, a shuffled deck and no mana.
+     * Initializes the player with a hero, a shuffled deck and 0 mana. Also clears the hand.
      * @param heroCard the hero card
-     * @param inDeck the deck
+     * @param inputDeck the deck
      * @param seed the seed to shuffle the deck
      */
-    public void init(final CardInput heroCard, final ArrayList<CardInput> inDeck, final int seed) {
+    public void init(final CardInput heroCard, final ArrayList<CardInput> inputDeck,
+                     final int seed) {
         mana = 0;
+        deck.clear();
+        hand.clear();
         switch (heroCard.getName()) {
             case "Lord Royce":
                 hero = new LordRoyce(heroCard);
@@ -59,10 +68,30 @@ public final class Player {
             default:
                 break;
         }
-        deck.clear();
-        hand.clear();
-        for (CardInput card : inDeck) {
-            this.deck.add(new Card(card));
+        for (CardInput card : inputDeck) {
+            switch (card.getName()) {
+                case "Goliath":
+                    deck.add(new Goliath(card));
+                    break;
+                case "Warden":
+                    deck.add(new Warden(card));
+                    break;
+                case "The Ripper":
+                    deck.add(new TheRipper(card));
+                    break;
+                case "Miraj":
+                    deck.add(new Miraj(card));
+                    break;
+                case "The Cursed One":
+                    deck.add(new TheCursedOne(card));
+                    break;
+                case "Disciple":
+                    deck.add(new Disciple(card));
+                    break;
+                default:
+                    deck.add(new Card(card));
+                    break;
+            }
         }
         Collections.shuffle(deck, new Random(seed));
     }

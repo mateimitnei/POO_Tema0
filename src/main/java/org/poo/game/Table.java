@@ -19,7 +19,7 @@ public final class Table {
     private final ArrayList<ArrayList<Card>> rows;
 
     /**
-     * Constructs a Table with initialized rows.
+     * Constructs a Table with [R_NUM] rows.
      */
     public Table() {
         rows = new ArrayList<>(R_NUM);
@@ -30,8 +30,8 @@ public final class Table {
 
     /**
      * Gets the card at the specified coordinates.
-     * @param x the x coordinate
-     * @param y the y coordinate
+     * @param x the row
+     * @param y the column
      * @return the card at the specified coordinates, null if there is no card
      */
     public Card getCard(final int x, final int y) {
@@ -47,7 +47,7 @@ public final class Table {
      * @param playerTurn the current player's turn
      * @param hero the hero of the current player
      */
-    public void resetPlayerCards(final int playerTurn, final Card hero) {
+    public void resetPlayerCardsProperties(final int playerTurn, final Card hero) {
         int r = 0;
         if (playerTurn == 1) {
             r = 2;
@@ -82,13 +82,13 @@ public final class Table {
 
     /**
      * Makes the attack of one card against another.
-     * @param x1 the x coordinate of the attacking card
-     * @param y1 the y coordinate of the attacking card
-     * @param x2 the x coordinate of the target card
-     * @param y2 the y coordinate of the target card
+     * @param x1 the row of the attacking card
+     * @param y1 the column of the attacking card
+     * @param x2 the row of the target card
+     * @param y2 the column of the target card
      * @return an error message if the attack is invalid, null otherwise
      */
-    public String attack(final int x1, final int y1, final int x2, final int y2) {
+    public String cardAttack(final int x1, final int y1, final int x2, final int y2) {
         Card attackCard = getCard(x1, y1);
         Card targetCard = getCard(x2, y2);
         if (x1 / 2 == x2 / 2) {
@@ -100,21 +100,7 @@ public final class Table {
         if (attackCard.isFrozen()) {
             return "Attacker card is frozen.";
         }
-        int targetFirstRow = 1;
-        if (x2 == 2 || x2 == 3) {
-            targetFirstRow = 2;
-        }
-        boolean tankAttacked = true;
-        for (Card card : rows.get(targetFirstRow)) {
-            if (card.isTank()) {
-                if (targetCard == card) {
-                    tankAttacked = true;
-                    break;
-                }
-                tankAttacked = false;
-            }
-        }
-        if (!tankAttacked) {
+        if (attacksIncorrectly(x2, targetCard)) {
             return "Attacked card is not of type 'Tank'.";
         }
         targetCard.setHp(targetCard.getHp() - attackCard.getAttack());
@@ -127,13 +113,13 @@ public final class Table {
 
     /**
      * Applies the ability of one card to a target card.
-     * @param x1 the x coordinate of the card using the ability
-     * @param y1 the y coordinate of the card using the ability
-     * @param x2 the x coordinate of the target card
-     * @param y2 the y coordinate of the target card
+     * @param x1 the row of the card using the ability
+     * @param y1 the column of the card using the ability
+     * @param x2 the row of the target card
+     * @param y2 the column of the target card
      * @return an error message if the ability is invalid, null otherwise
      */
-    public String ability(final int x1, final int y1, final int x2, final int y2) {
+    public String cardAbility(final int x1, final int y1, final int x2, final int y2) {
         Card attackCard = getCard(x1, y1);
         Card targetCard = getCard(x2, y2);
         if (attackCard.isFrozen()) {
@@ -142,60 +128,42 @@ public final class Table {
         if (attackCard.isUsedAttack()) {
             return "Attacker card has already attacked this turn.";
         }
-        if (attackCard.getName().equals("Disciple")) {
-            if (x1 / 2 != x2 / 2) {
-                return "Attacked card does not belong to the current player.";
-            }
-            targetCard.setHp(targetCard.getHp() + 2);
-        } else if (Arrays.asList(ATTACK_ABILITIES).contains(attackCard.getName())) {
-            if (x1 / 2 == x2 / 2) {
-                return "Attacked card does not belong to the enemy.";
-            }
-            int targetFirstRow = 1;
-            if (x2 == 2 || x2 == 3) {
-                targetFirstRow = 2;
-            }
-            boolean tankAttacked = true;
-            for (Card card : rows.get(targetFirstRow)) {
-                if (card.isTank()) {
-                    if (targetCard == card) {
-                        tankAttacked = true;
-                        break;
-                    }
-                    tankAttacked = false;
-                }
-            }
-            if (!tankAttacked) {
-                return "Attacked card is not of type 'Tank'.";
-            }
-            if (attackCard.getName().equals("The Ripper")) {
-                if (targetCard.getAttack() > 2) {
-                    targetCard.setAttack(targetCard.getAttack() - 2);
-                } else {
-                    targetCard.setAttack(0);
-                }
-            } else if (attackCard.getName().equals("Miraj")) {
-                int aux = attackCard.getHp();
-                attackCard.setHp(targetCard.getHp());
-                targetCard.setHp(aux);
-            } else if (attackCard.getName().equals("The Cursed One")) {
-                if (targetCard.getAttack() == 0) {
-                    rows.get(x2).remove(y2);
-                } else {
-                    int aux = targetCard.getAttack();
-                    targetCard.setAttack(targetCard.getHp());
-                    targetCard.setHp(aux);
-                }
-            }
+        String error = attackCard.ability(x1, x2, y2, targetCard, this);
+        if (error != null) {
+            return error;
         }
         attackCard.setUsedAttack(true);
         return null;
     }
 
     /**
+     * Checks if the card attacks incorrectly.
+     * Used by cardAttack and the ability methods from {@link org.poo.game.minions}.
+     * @param x2 the row of the target card
+     * @param targetCard the target card
+     * @return true if the opponent has a tank card and the target is not a tank, false otherwise
+     */
+    public boolean attacksIncorrectly(final int x2, final Card targetCard) {
+        int targetFirstRow = 1;
+        if (x2 == 2 || x2 == 3) {
+            targetFirstRow = 2;
+        }
+        boolean ok = false;
+        for (Card card : rows.get(targetFirstRow)) {
+            if (card.isTank()) {
+                if (targetCard == card) {
+                    return false;
+                }
+                ok = true;
+            }
+        }
+        return ok;
+    }
+
+    /**
      * Makes the attack of one card against the enemy hero.
-     * @param x the x coordinate of the attacking card
-     * @param y the y coordinate of the attacking card
+     * @param x the row of the attacking card
+     * @param y the column of the attacking card
      * @return an error message if the attack is invalid, null otherwise
      */
     public String attackHero(final int x, final int y, final int playerTurn,
@@ -240,14 +208,13 @@ public final class Table {
      */
     public String heroAbility(final int targetRow, final int playerTurn, final Player[] players) {
         Hero hero = players[playerTurn - 1].getHero();
-        String error;
         if (players[playerTurn - 1].getMana() < hero.getMana()) {
             return "Not enough mana to use hero's ability.";
         }
         if (hero.isUsedAttack()) {
             return "Hero has already attacked this turn.";
         }
-        error = hero.ability(targetRow, playerTurn, rows);
+        String error = hero.ability(targetRow, playerTurn, rows);
         if (error != null) {
             return error;
         }

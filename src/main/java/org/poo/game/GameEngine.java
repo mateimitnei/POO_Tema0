@@ -150,7 +150,7 @@ public final class GameEngine {
     // Handlers for some of the switch cases:
 
     private void endPlayerTurnHandler() {
-        table.resetPlayerCards(playerTurn, players[playerTurn - 1].getHero());
+        table.resetPlayerCardsProperties(playerTurn, players[playerTurn - 1].getHero());
         playerTurn = (playerTurn == 1) ? 2 : 1;
         if (playerTurn == startGame.getStartingPlayer()) {
             newRound();
@@ -203,13 +203,13 @@ public final class GameEngine {
         actionOutput.set("cardAttacker", cardAttacker);
         actionOutput.set("cardAttacked", cardAttacked);
         if (playType.equals("attack")) {
-            String error = table.attack(x1, y1, x2, y2);
+            String error = table.cardAttack(x1, y1, x2, y2);
             if (error != null) {
                 actionOutput.put("error", error);
                 return;
             }
         } else if (playType.equals("ability")) {
-            String error = table.ability(x1, y1, x2, y2);
+            String error = table.cardAbility(x1, y1, x2, y2);
             if (error != null) {
                 actionOutput.put("error", error);
                 return;

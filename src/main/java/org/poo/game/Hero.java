@@ -27,7 +27,8 @@ public class Hero extends Card {
      * @param playerTurn the player's turn (1 or 2)
      * @return error message or null
      */
-    public String ability(final int targetRow, final int playerTurn, ArrayList<ArrayList<Card>> rows) {
+    public String ability(final int targetRow, final int playerTurn,
+                          final ArrayList<ArrayList<Card>> rows) {
         return null;
     }
 
