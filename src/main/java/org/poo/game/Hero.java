@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.fileio.CardInput;
 
+import java.util.ArrayList;
+
 /**
  * Represents a player's hero in the game. Extends the card class.
  */
@@ -17,6 +19,16 @@ public class Hero extends Card {
     public Hero(final CardInput card) {
         super(card);
         setHp(HERO_HP);
+    }
+
+    /**
+     * To be overridden by each hero's ability method.
+     * @param targetRow the row to use ability on
+     * @param playerTurn the player's turn (1 or 2)
+     * @return error message or null
+     */
+    public String ability(final int targetRow, final int playerTurn, ArrayList<ArrayList<Card>> rows) {
+        return null;
     }
 
     /**

@@ -47,7 +47,7 @@ public final class Table {
      * @param playerTurn the current player's turn
      * @param hero the hero of the current player
      */
-    public void resetPlayerCards(final int playerTurn, final Hero hero) {
+    public void resetPlayerCards(final int playerTurn, final Card hero) {
         int r = 0;
         if (playerTurn == 1) {
             r = 2;
@@ -240,50 +240,16 @@ public final class Table {
      */
     public String heroAbility(final int targetRow, final int playerTurn, final Player[] players) {
         Hero hero = players[playerTurn - 1].getHero();
+        String error;
         if (players[playerTurn - 1].getMana() < hero.getMana()) {
             return "Not enough mana to use hero's ability.";
         }
         if (hero.isUsedAttack()) {
             return "Hero has already attacked this turn.";
         }
-        if (hero.getName().equals("Lord Royce")
-                || hero.getName().equals("Empress Thorina")) {
-            if ((playerTurn == 1 && targetRow / 2 == 1)
-                    || (playerTurn == 2 && targetRow / 2 == 0)) {
-                return "Selected row does not belong to the enemy.";
-            }
-            if (hero.getName().equals("Lord Royce")) {
-                for (Card card : rows.get(targetRow)) {
-                    card.setFrozen(true);
-                }
-            } else if (hero.getName().equals("Empress Thorina")) {
-                int highestHp = -1;
-                int idx = -1;
-                for (int i = 0; i < rows.get(targetRow).size(); i++) {
-                    if (rows.get(targetRow).get(i).getHp() > highestHp) {
-                        highestHp = rows.get(targetRow).get(i).getHp();
-                        idx = i;
-                    }
-                }
-                if (idx != -1) {
-                    rows.get(targetRow).remove(idx);
-                }
-            }
-        } else if (hero.getName().equals("General Kocioraw")
-                || hero.getName().equals("King Mudface")) {
-            if ((playerTurn == 1 && targetRow / 2 == 0)
-                    || (playerTurn == 2 && targetRow / 2 == 1)) {
-                return "Selected row does not belong to the current player.";
-            }
-            if (hero.getName().equals("General Kocioraw")) {
-                for (Card card : rows.get(targetRow)) {
-                    card.setAttack(card.getAttack() + 1);
-                }
-            } else if (hero.getName().equals("King Mudface")) {
-                for (Card card : rows.get(targetRow)) {
-                    card.setHp(card.getHp() + 1);
-                }
-            }
+        error = hero.ability(targetRow, playerTurn, rows);
+        if (error != null) {
+            return error;
         }
         players[playerTurn - 1].setMana(players[playerTurn - 1].getMana() - hero.getMana());
         hero.setUsedAttack(true);

@@ -6,6 +6,10 @@ import org.poo.fileio.CardInput;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.poo.game.heroes.EmpressThorina;
+import org.poo.game.heroes.GeneralKocioraw;
+import org.poo.game.heroes.KingMudface;
+import org.poo.game.heroes.LordRoyce;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,7 +43,22 @@ public final class Player {
      */
     public void init(final CardInput heroCard, final ArrayList<CardInput> inDeck, final int seed) {
         mana = 0;
-        hero = new Hero(heroCard);
+        switch (heroCard.getName()) {
+            case "Lord Royce":
+                hero = new LordRoyce(heroCard);
+                break;
+            case "Empress Thorina":
+                hero = new EmpressThorina(heroCard);
+                break;
+            case "King Mudface":
+                hero = new KingMudface(heroCard);
+                break;
+            case "General Kocioraw":
+                hero = new GeneralKocioraw(heroCard);
+                break;
+            default:
+                break;
+        }
         deck.clear();
         hand.clear();
         for (CardInput card : inDeck) {
@@ -54,8 +73,8 @@ public final class Player {
      */
     public void drawCard() {
         if (!deck.isEmpty()) {
-            hand.add(deck.get(0));
-            deck.remove(0);
+            hand.add(deck.getFirst());
+            deck.removeFirst();
         }
     }
 

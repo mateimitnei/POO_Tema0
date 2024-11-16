@@ -6,7 +6,7 @@
 ### Componentele soluției
 
 1. **GameEngine** (`main.java.org.poo.game/GameEngine.java`):
-    - Utilizează clasa `Input` pentru a obține datele de intrare și clasa  
+    - Utilizează clasa `Input` pentru a prelua datele de intrare și clasa  
 `Table` pentru a gestiona plasarea și acțiunile cărților pe masă.
 
 2. **Player** (`main.java.org.poo.game/Player.java`):
@@ -37,5 +37,5 @@ comenzi de debug si statistici.
     - `Table` gestionează plasarea cărților pe rândurile corespunzătoare și  
 aplicarea atacurilor și abilităților.
     - `Player` gestionează mana, mâna de cărți și eroul jucătorului.
-    - `Card` și `Hero` reprezintă entitățile care pot fi plasate pe masă și  
-care pot efectua acțiuni.
+    - `Card` și `Hero` reprezintă entitățile din joc și care pot efectua  
+acțiuni.

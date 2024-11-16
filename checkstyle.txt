@@ -1,6 +1,20 @@
 Starting audit...
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\Hero.java:30: Line is longer than 100 characters (found 103). [LineLength]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\Hero.java:30:70: Parameter rows should be final. [FinalParameters]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\EmpressThorina.java:6:8: Unused import - org.poo.game.Player. [UnusedImports]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\EmpressThorina.java:19:5: Class 'EmpressThorina' looks like designed for extension (can be subclassed), but the method 'ability' does not have javadoc that explains how to do that safely. If class is not designed for extension consider making the class 'EmpressThorina' final or making the method 'ability' static/final/abstract/empty, or adding allowed annotation for the method. [DesignForExtension]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\EmpressThorina.java:20: Line is longer than 100 characters (found 109). [LineLength]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\GeneralKocioraw.java:6:8: Unused import - org.poo.game.Player. [UnusedImports]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\GeneralKocioraw.java:19:5: Class 'GeneralKocioraw' looks like designed for extension (can be subclassed), but the method 'ability' does not have javadoc that explains how to do that safely. If class is not designed for extension consider making the class 'GeneralKocioraw' final or making the method 'ability' static/final/abstract/empty, or adding allowed annotation for the method. [DesignForExtension]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\GeneralKocioraw.java:20: Line is longer than 100 characters (found 109). [LineLength]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\KingMudface.java:6:8: Unused import - org.poo.game.Player. [UnusedImports]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\KingMudface.java:19:5: Class 'KingMudface' looks like designed for extension (can be subclassed), but the method 'ability' does not have javadoc that explains how to do that safely. If class is not designed for extension consider making the class 'KingMudface' final or making the method 'ability' static/final/abstract/empty, or adding allowed annotation for the method. [DesignForExtension]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\KingMudface.java:20: Line is longer than 100 characters (found 109). [LineLength]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\LordRoyce.java:6:8: Unused import - org.poo.game.Player. [UnusedImports]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\LordRoyce.java:19:5: Class 'LordRoyce' looks like designed for extension (can be subclassed), but the method 'ability' does not have javadoc that explains how to do that safely. If class is not designed for extension consider making the class 'LordRoyce' final or making the method 'ability' static/final/abstract/empty, or adding allowed annotation for the method. [DesignForExtension]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\heroes\LordRoyce.java:20: Line is longer than 100 characters (found 109). [LineLength]
 [ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\Table.java:71:80: '3' is a magic number. [MagicNumber]
 [ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\Table.java:104:30: '3' is a magic number. [MagicNumber]
 [ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\Table.java:155:34: '3' is a magic number. [MagicNumber]
 Audit done.
-Checkstyle ends with 3 errors.
+Checkstyle ends with 17 errors.
