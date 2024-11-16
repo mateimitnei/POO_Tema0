@@ -1,6 +1,6 @@
 Starting audit...
-[ERROR] C:\Users\Matei\Documents\POO\Tema0\.\src\game\Table.java:71:80: '3' is a magic number. [MagicNumber]
-[ERROR] C:\Users\Matei\Documents\POO\Tema0\.\src\game\Table.java:104:30: '3' is a magic number. [MagicNumber]
-[ERROR] C:\Users\Matei\Documents\POO\Tema0\.\src\game\Table.java:155:34: '3' is a magic number. [MagicNumber]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\Table.java:71:80: '3' is a magic number. [MagicNumber]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\Table.java:104:30: '3' is a magic number. [MagicNumber]
+[ERROR] C:\Users\matei_izmux0\Documents\POO\POO_Tema0_Maven\.\src\main\java\org\poo\game\Table.java:155:34: '3' is a magic number. [MagicNumber]
 Audit done.
 Checkstyle ends with 3 errors.
